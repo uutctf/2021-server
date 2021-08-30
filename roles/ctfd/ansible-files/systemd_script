@@ -1,0 +1,12 @@
+[Unit]
+Description=Gunicorn instance to serve myproject
+After=network.target
+
+[Service]
+Group=www-data
+WorkingDirectory={{ app_dir }}
+Environment="PATH={{ virt_path }}/bin"
+ExecStart={{ virt_path }}/bin/gunicorn --bind 127.0.0.1:8182 wsgi:app
+
+[Install]
+WantedBy=multi-user.target

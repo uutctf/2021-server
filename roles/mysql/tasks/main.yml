@@ -1,0 +1,73 @@
+---
+
+- name: Install MySQL Database
+  apt: 
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items:
+    - mysql-server
+    - mysql-client
+    - libmysqlclient-dev
+    - python3-pymysql
+    - python3-pip
+
+- name: Install PyMySQL
+  pip:
+    name: pymysql
+    state: present
+
+- name: Start MySQL Service
+  service: 
+    name: mysql
+    state: started
+    enabled: yes
+
+- name: Copy MySQL root credentials as .my.cnf file
+  template:
+    src: root_mysql_my.cnf.j2
+    dest: /root/.my.cnf
+    owner: root
+    mode: "0400"
+
+- name: Update MySQL root password for all root accounts
+  mysql_user:
+    name: root
+    host: "{{ item }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    password: "{{ mysql_root_password }}"
+    check_implicit_admin: yes
+    priv: "*.*:ALL,GRANT"
+  with_items:
+    - "{{ ansible_hostname }}"
+    - 127.0.0.1
+    - ::1
+    - localhost
+  no_log: true
+
+- name: Create Application Database
+  mysql_db:
+    name: "{{ mysql_database_name }}"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create Database User
+  mysql_user:
+    name: "{{ mysql_database_user }}"
+    password: "{{ mysql_user_password }}"
+    priv: '*.*:ALL'
+    state: present
+    host: '%'
+
+- name: bind mysql to every ip
+  lineinfile:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    regexp: '^bind-address='
+    line: bind-address            = 0.0.0.0
+
+- name: bind mysql to every ip
+  lineinfile:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    regexp: '^mysqlx-bind-address='
+    line: mysqlx-bind-address     = 0.0.0.0
+

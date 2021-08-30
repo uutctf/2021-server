@@ -1,0 +1,18 @@
+---
+app_name: "ctfd"
+app_dir: "/opt/{{ app_name }}"
+web_user: "www-data"
+log_dir: "/var/log/{{ app_name }}"
+req_path: "{{ app_dir }}/requirements.txt"
+virt_path: "{{ app_dir }}/appvenv"
+
+
+mysql_database_user: ali
+mysql_user_password: amirali
+mysql_database_name: amirdb
+database_server_ip: localhost
+
+cache_database_user: ctfd
+cache_database_pass: amir
+cache_server_ip: localhost
+

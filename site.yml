@@ -1,0 +1,21 @@
+---
+- hosts: all
+  become: yes
+  user: root
+  gather_facts: yes
+  tasks:
+    - name: mysql
+      include_role:
+        name: mysql
+      when: inventory_hostname in groups['dbmaster']
+
+    - name: redis
+      include_role:
+        name: redis
+      when: inventory_hostname in groups['redis']
+
+    - name: ctfd
+      include_role:
+        name: ctfd
+      when: inventory_hostname in groups['app']
+
