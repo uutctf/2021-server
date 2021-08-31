@@ -1,0 +1,106 @@
+
+---
+- name: install updates
+  apt:
+    autoremove: yes
+    update_cache: yes
+    
+- name: install packages
+  apt:
+    package:
+      - python3-pip
+      - python3-dev
+      - build-essential
+      - libssl-dev
+      - libffi-dev
+      - python3-setuptools
+      - python3-venv
+      - nginx
+
+- name: create application user
+  user:
+    create_home: no
+    home: "{{ app_dir }}"
+    name: "{{ app_name }}"
+    shell: /bin/bash
+    state: present
+    system: yes
+- name: create application directory
+  file:
+    name: "{{ app_dir }}"
+    state: directory
+    owner: "{{ app_name }}"
+    group: "{{ web_user }}"
+    mode: 0755
+- name: create logging directory
+  file:
+    dest: "{{ log_dir }}"
+    mode: 0755
+    owner: "{{ app_name }}"
+    group: "{{ web_user }}"
+    state: directory
+- name: clone git repo
+  git:
+    repo: https://github.com/CTFd/CTFd.git
+    dest: "{{ app_dir }}"
+    clone: yes
+    update: yes
+- name: create virtual env
+  pip:
+     requirements: "{{ req_path }}"
+     virtualenv: "{{ virt_path }}"
+     virtualenv_command: /usr/bin/python3.8 -m venv
+
+- name: "install some other packages"
+  shell: "{{ virt_path }}/bin/pip install wheel flask gunicorn cryptography"
+
+- name: copy service file
+  template:
+    src: ansible-files/systemd_script
+    dest: "/etc/systemd/system/{{ app_name }}.service"
+    owner: root
+    group: root
+    mode: 0755
+
+
+- name: copy nginx config
+  template:
+    src: ansible-files/nginx_config
+    dest: "/etc/nginx/sites-available/{{ app_name }}"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: enable nginx app site
+  file:
+    src: "/etc/nginx/sites-available/{{ app_name }}"
+    dest: "/etc/nginx/sites-enabled/{{ app_name }}"
+    state: link
+
+- name: disable nginx default site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted
+    enabled: yes
+- name: restart nginx
+  service:
+    name: "{{ app_name }}"
+    state: restarted
+    enabled: yes
+- name: Delete old app config file
+  file:
+    state: absent
+    path: "{{ app_dir }}CTFd/config.ini"
+- name: copy app new config file
+  template:
+    src: ansible-files/config.ini
+    dest: "{{ app_dir }}/CTFd/config.ini"
+    owner: root
+    group: root
+    mode: 0644
+

@@ -1,0 +1,8 @@
+[dbmaster]
+serverip ansible_user=ubuntu ansible_ssh_private_key_file=sshkeylocation
+
+[redis]
+serverip ansible_user=ubuntu ansible_ssh_private_key_file=sshkeylocation
+
+[app]
+serverip ansible_user=ubuntu ansible_ssh_private_key_file=sshkeylocation

@@ -1,0 +1,6 @@
+---
+mysql_root_password: amir
+mysql_database_user: ali
+mysql_user_password: amirali
+mysql_database_name: amirdb
+
